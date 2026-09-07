@@ -49,16 +49,16 @@
 }
 
 :root {
-   --primary: #0E223D;
-  --secondary: #C5A265;
-  --background: #FBFBF9;
+  --primary: #0e223d;
+  --secondary: #c5a265;
+  --background: #fbfbf9;
   --text: #121820;
   --foreground: #121820;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.147 0.004 49.3);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.147 0.004 49.3);
-  --primary-foreground: #FBFBF9;
+  --primary-foreground: #fbfbf9;
   --secondary-foreground: #121820;
   --muted: oklch(0.96 0.002 17.2);
   --muted-foreground: oklch(0.547 0.021 43.1);
@@ -124,6 +124,12 @@
   }
   body {
     @apply bg-background text-foreground;
+    background: var(--background);
+    color: var(--foreground);
+  }
+  ::selection {
+    background: var(--secondary);
+    color: var(--primary);
   }
   html {
     @apply font-sans;
@@ -136,4 +142,41 @@
 
 .font-body {
   font-family: var(--font-sans);
+}
+
+@layer components {
+  .site-container {
+    width: min(100% - 2rem, 80rem);
+    margin-inline: auto;
+  }
+
+  .eyebrow {
+    color: var(--secondary);
+    font-family: var(--font-sans);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .section-title {
+    color: var(--primary);
+    font-family: var(--font-heading);
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 500;
+    line-height: 1.12;
+  }
+
+  .gold-rule {
+    width: 4rem;
+    height: 2px;
+    background: var(--secondary);
+  }
+}
+
+@media (min-width: 768px) {
+  .site-container {
+    width: min(100% - 4rem, 80rem);
+  }
 }

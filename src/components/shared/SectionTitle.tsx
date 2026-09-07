@@ -17,14 +17,10 @@ export default function SectionTitle({
         </span>
       )}
 
-      <h2 className="font-heading mt-3 text-4xl">
-        {title}
-      </h2>
+      <h2 className="font-heading mt-3 text-4xl">{title}</h2>
 
       {description && (
-        <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
-          {description}
-        </p>
+        <p className="mt-4 text-gray-600 max-w-2xl mx-auto">{description}</p>
       )}
     </div>
   );
