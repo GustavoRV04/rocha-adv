@@ -67,7 +67,7 @@ export function AboutSection() {
             </div>
           </div>
           <Link
-            href="/escitorio"
+            href="/escritorio"
             className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-[#765A24]"
           >
             Conheça nossa história <ArrowRight size={16} />
