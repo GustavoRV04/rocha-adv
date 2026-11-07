@@ -1,6 +1,6 @@
 import { UserRound, Mail, Phone } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
 import { CreateRecordButton } from "@/components/admin/CreateRecordButton";
+import { query } from "@/lib/db";
 
 type Client = {
   id: string;
@@ -16,9 +16,8 @@ function formatValue(value?: string | null, fallback = "Não informado") {
 }
 
 export default async function ClientsPage() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("clientes").select("*");
-  const clients = (data ?? []) as Client[];
+  const { rows } = await query<Client>("SELECT * FROM clientes ORDER BY created_at DESC");
+  const clients = rows;
 
   return (
     <div className="mx-auto max-w-7xl space-y-7">
@@ -30,27 +29,20 @@ export default async function ClientsPage() {
           </h1>
           <p className="mt-3 text-sm text-[#526071]">
             Registros sincronizados com a tabela <strong>clientes</strong> do
-            Supabase.
+            Neon.
           </p>
         </div>
         <CreateRecordButton type="cliente" label="Novo cliente" />
       </div>
 
-      {error && (
-        <p className="border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          Não foi possível carregar os clientes. Verifique as políticas RLS da
-          tabela.
-        </p>
-      )}
-
-      {!error && clients.length === 0 && (
+      {clients.length === 0 && (
         <div className="border border-dashed border-[#0E223D]/20 bg-white p-12 text-center">
           <UserRound size={30} className="mx-auto text-[#C5A265]" />
           <h2 className="mt-4 font-heading text-2xl text-[#0E223D]">
             Nenhum cliente cadastrado
           </h2>
           <p className="mt-2 text-sm text-[#526071]">
-            Quando um registro for inserido no Supabase, ele aparecerá aqui.
+            Quando um registro for inserido no Neon, ele aparecerá aqui.
           </p>
         </div>
       )}
@@ -69,7 +61,7 @@ export default async function ClientsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#0E223D]/8">
-                {clients.map((client) => (
+                {clients.map((client: Client) => (
                   <tr key={client.id} className="align-top hover:bg-[#FBFBF9]">
                     <td className="px-5 py-4 font-semibold text-[#0E223D]">
                       {formatValue(client.nome_completo, "Sem nome")}
@@ -97,7 +89,7 @@ export default async function ClientsPage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {clients.map((client) => (
+            {clients.map((client: Client) => (
               <article
                 key={client.id}
                 className="rounded-2xl border border-[#0E223D]/10 bg-white p-5 shadow-sm"

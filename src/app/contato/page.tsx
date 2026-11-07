@@ -21,15 +21,24 @@ export default function ContactPage() {
             <div className="bg-[#0E223D] p-8 text-white">
               <span className="eyebrow">Sede institucional</span>
               <h2 className="mt-3 font-heading text-3xl">
-                Porto Alegre/RS · Porto Alegre
+                Torre Cristal · Porto Alegre/RS
               </h2>
               <div className="mt-8 flex flex-col gap-5 text-sm leading-6 text-white/65">
-                <span className="flex gap-3">
+                <a
+                  href={site.mapsUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex gap-3 hover:text-[#C5A265]"
+                >
                   <MapPin size={18} className="mt-1 shrink-0 text-[#C5A265]" />{" "}
-                  {site.address}
-                  <br />
-                  {site.city}
-                </span>
+                  <span>
+                    {site.address}
+                    <br />
+                    {site.city}
+                    <br />
+                    Ver no mapa
+                  </span>
+                </a>
                 <a
                   href={`tel:${site.phone.replace(/\D/g, "")}`}
                   className="flex gap-3 hover:text-[#C5A265]"

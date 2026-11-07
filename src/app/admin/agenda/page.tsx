@@ -1,6 +1,6 @@
 import { CalendarClock, CheckCircle2, Clock } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
 import { CreateRecordButton } from "@/components/admin/CreateRecordButton";
+import { query } from "@/lib/db";
 
 type Commitment = Record<string, unknown> & { id?: string };
 
@@ -40,8 +40,21 @@ function getWeekDays() {
 }
 
 function getCommitmentDate(commitment: Commitment) {
-  const value = commitment.data ?? commitment.data_evento ?? commitment.date;
-  return typeof value === "string" ? value.slice(0, 10) : "";
+  const value =
+    commitment.data_hora_inicio ??
+    commitment.data ??
+    commitment.data_evento ??
+    commitment.date;
+
+  if (typeof value === "string") {
+    return value.slice(0, 10);
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  return "";
 }
 
 function getCommitmentTitle(commitment: Commitment) {
@@ -54,13 +67,30 @@ function getCommitmentTitle(commitment: Commitment) {
 }
 
 function getCommitmentTime(commitment: Commitment) {
-  return String(commitment.hora ?? commitment.horario ?? "Horário a definir");
+  const value =
+    commitment.data_hora_inicio ?? commitment.hora ?? commitment.horario;
+
+  if (typeof value !== "string" || value.length === 0) {
+    return "Horário a definir";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export default async function AgendaPage() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("compromissos").select("*");
-  const commitments = (data ?? []) as Commitment[];
+  const { rows } = await query<Commitment>(
+    "SELECT * FROM compromissos ORDER BY data_hora_inicio ASC",
+  );
+  const commitments = rows;
   const weekDays = getWeekDays();
   const today = toIsoDate(new Date());
 
@@ -79,14 +109,6 @@ export default async function AgendaPage() {
         </div>
         <CreateRecordButton type="compromisso" label="Novo compromisso" />
       </div>
-
-      {error && (
-        <p className="border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          Não foi possível sincronizar os registros do Supabase. A agenda segue
-          disponível para consulta, mas os compromissos existentes não puderam
-          ser carregados.
-        </p>
-      )}
 
       <section className="border border-[#0E223D]/8 bg-white p-5 shadow-sm lg:p-6">
         <div className="flex flex-col justify-between gap-3 border-b border-[#0E223D]/10 pb-5 sm:flex-row sm:items-center">
@@ -137,7 +159,7 @@ export default async function AgendaPage() {
 
                 <div className="mt-4 space-y-3">
                   {dayCommitments.length > 0 ? (
-                    dayCommitments.map((commitment, index) => (
+                    dayCommitments.map((commitment: Commitment, index: number) => (
                       <div
                         key={String(commitment.id ?? `${day.isoDate}-${index}`)}
                         className="border-l-2 border-[#C5A265] bg-white p-3 shadow-sm"

@@ -1,13 +1,14 @@
 import { FileText, Search } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
 import { CreateRecordButton } from "@/components/admin/CreateRecordButton";
+import { query } from "@/lib/db";
 
 type Process = Record<string, unknown> & { id?: string };
 
 export default async function ProcessesPage() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("processos").select("*");
-  const processes = (data ?? []) as Process[];
+  const { rows } = await query<Process>(
+    "SELECT * FROM processos ORDER BY created_at DESC",
+  );
+  const processes = rows;
 
   return (
     <div className="mx-auto max-w-7xl space-y-7">
@@ -19,7 +20,7 @@ export default async function ProcessesPage() {
           </h1>
           <p className="mt-3 text-sm text-[#526071]">
             Casos sincronizados com a tabela <strong>processos</strong> do
-            Supabase.
+            Neon.
           </p>
         </div>
         <CreateRecordButton type="processo" label="Novo processo" />
@@ -27,26 +28,20 @@ export default async function ProcessesPage() {
       <div className="flex max-w-xl items-center gap-3 border border-[#0E223D]/10 bg-white px-4 py-3 text-sm text-[#748096]">
         <Search size={17} /> Pesquisar por número, cliente ou assunto...
       </div>
-      {error && (
-        <p className="border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          Não foi possível carregar os processos. Verifique as políticas RLS da
-          tabela.
-        </p>
-      )}
-      {!error && processes.length === 0 && (
+      {processes.length === 0 && (
         <div className="border border-dashed border-[#0E223D]/20 bg-white p-12 text-center">
           <FileText size={32} className="mx-auto text-[#C5A265]" />
           <h2 className="mt-4 font-heading text-2xl text-[#0E223D]">
             Nenhum processo cadastrado
           </h2>
           <p className="mt-2 text-sm text-[#526071]">
-            Os registros inseridos no Supabase aparecerão nesta área.
+            Os registros inseridos no Neon aparecerão nesta área.
           </p>
         </div>
       )}
       {processes.length > 0 && (
         <div className="grid gap-4 md:grid-cols-2">
-          {processes.map((item, index) => (
+          {processes.map((item: Process, index: number) => (
             <article
               key={String(item.id ?? index)}
               className="border border-[#0E223D]/8 bg-white p-6 shadow-sm"

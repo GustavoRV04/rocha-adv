@@ -3,8 +3,9 @@ export const site = {
   whatsapp: "+55 (11) 98921-4400",
   whatsappUrl: "https://wa.me/5511989214400",
   email: "contato@rochaadvocacia.com.br",
-  address: "Av. Brigadeiro Faria Lima, 3477, 14º andar",
-  city: "Itaim Bibi, São Paulo - SP",
+  address: "Torre Cristal, sala 1203 (ao lado do BarraShoppingSul)",
+  city: "Porto Alegre - RS",
+  mapsUrl: "https://maps.app.goo.gl/M37B5FPY2NradKzv9",
   hours: "Segunda a Sexta: 09:00 - 18:30",
   oab: "OAB/SP 184.920 | OAB/DF 42.110",
   hero: {

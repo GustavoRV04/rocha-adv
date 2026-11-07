@@ -6,32 +6,31 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { query } from "@/lib/db";
 
 export default async function AdminDashboardPage() {
-  const supabase = await createClient();
   const [clients, processes, commitments] = await Promise.all([
-    supabase.from("clientes").select("*", { count: "exact", head: true }),
-    supabase.from("processos").select("*", { count: "exact", head: true }),
-    supabase.from("compromissos").select("*", { count: "exact", head: true }),
+    query<{ count: number }>("SELECT COUNT(*)::int AS count FROM clientes"),
+    query<{ count: number }>("SELECT COUNT(*)::int AS count FROM processos"),
+    query<{ count: number }>("SELECT COUNT(*)::int AS count FROM compromissos"),
   ]);
 
   const metrics = [
     {
       label: "Clientes ativos",
-      value: clients.count ?? 0,
+      value: clients.rows[0]?.count ?? 0,
       icon: Users,
       href: "/admin/clientes",
     },
     {
       label: "Processos e casos",
-      value: processes.count ?? 0,
+      value: processes.rows[0]?.count ?? 0,
       icon: FileText,
       href: "/admin/processos",
     },
     {
       label: "Compromissos",
-      value: commitments.count ?? 0,
+      value: commitments.rows[0]?.count ?? 0,
       icon: CalendarClock,
       href: "/admin/agenda",
     },
@@ -104,7 +103,7 @@ export default async function AdminDashboardPage() {
           </div>
           <div className="mt-6 border-l-2 border-[#C5A265] bg-[#F4F6FA] p-5">
             <span className="text-xs font-bold uppercase tracking-wider text-[#765A24]">
-              Dados do Supabase
+            Dados do Neon
             </span>
             <p className="mt-2 text-sm leading-6 text-[#526071]">
               A agenda está pronta para receber os registros da tabela{" "}
@@ -116,8 +115,8 @@ export default async function AdminDashboardPage() {
           <span className="eyebrow">Segurança</span>
           <h2 className="mt-2 font-heading text-2xl">Sessão autenticada</h2>
           <p className="mt-3 text-sm leading-6 text-white/60">
-            O acesso aos módulos administrativos depende do usuário autenticado
-            no Supabase.
+            O acesso aos módulos administrativos depende da sessão autenticada
+            configurada no ambiente local e no Vercel.
           </p>
         </div>
       </section>

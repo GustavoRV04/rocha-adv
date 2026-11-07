@@ -1,25 +1,24 @@
 import { redirect } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { createClient } from "@/lib/supabase/server";
+import { readAdminSession } from "@/lib/admin-auth";
+import { query } from "@/lib/db";
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const { count: commitmentsCount } = await supabase
-    .from("compromissos")
-    .select("*", { count: "exact", head: true });
+  const sessionEmail = await readAdminSession();
 
-  if (!user) {
+  if (!sessionEmail) {
     redirect("/login");
   }
 
+  const result = await query<{ count: number }>(
+    "SELECT COUNT(*)::int AS count FROM compromissos",
+  );
+
   return (
-    <AdminShell commitmentsCount={commitmentsCount ?? 0}>{children}</AdminShell>
+    <AdminShell commitmentsCount={result.rows[0]?.count ?? 0}>{children}</AdminShell>
   );
 }

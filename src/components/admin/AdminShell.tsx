@@ -11,7 +11,6 @@ import {
   Search,
   Users,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 
 const modules = [
   { label: "Dashboard Geral", href: "/admin", icon: LayoutDashboard },
@@ -31,7 +30,7 @@ export function AdminShell({
   const router = useRouter();
 
   async function handleLogout() {
-    await createClient().auth.signOut();
+    await fetch("/api/admin/logout", { method: "POST" });
     router.push("/login");
     router.refresh();
   }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { readAdminSession } from "@/lib/admin-auth";
+import { ensureDatabaseSchema, query } from "@/lib/db";
 
 const schemaByType = {
   cliente: {
@@ -18,6 +19,15 @@ const schemaByType = {
 
 export async function POST(request: Request) {
   try {
+    const sessionEmail = await readAdminSession();
+
+    if (!sessionEmail) {
+      return NextResponse.json(
+        { error: "Sessão expirada ou inválida." },
+        { status: 401 },
+      );
+    }
+
     const body = (await request.json()) as {
       type?: keyof typeof schemaByType;
       values?: Record<string, string>;
@@ -34,7 +44,6 @@ export async function POST(request: Request) {
     }
 
     const config = schemaByType[type];
-
     const normalizedValues = { ...values };
 
     if (type === "compromisso") {
@@ -85,18 +94,16 @@ export async function POST(request: Request) {
       );
     }
 
-    const supabase = createAdminClient();
-    const { error } = await supabase.from(config.table).insert(cleaned);
+    await ensureDatabaseSchema();
 
-    if (error) {
-      return NextResponse.json(
-        {
-          error: `Falha ao salvar ${type}. Verifique colunas e políticas do banco.`,
-          details: error.message,
-        },
-        { status: 400 },
-      );
-    }
+    const fields = Object.keys(cleaned);
+    const placeholders = fields.map((_, index) => `$${index + 1}`).join(", ");
+    const valuesList = Object.values(cleaned);
+
+    await query(
+      `INSERT INTO ${config.table} (${fields.join(", ")}) VALUES (${placeholders})`,
+      valuesList,
+    );
 
     return NextResponse.json({ ok: true });
   } catch (error) {

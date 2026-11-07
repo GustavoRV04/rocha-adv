@@ -42,12 +42,21 @@ export function Footer() {
         <div>
           <h2 className="font-heading text-lg">Atendimento & Sede</h2>
           <div className="mt-4 flex flex-col gap-3 text-sm leading-6 text-white/55">
-            <span className="flex gap-2">
-              <MapPin size={16} className="mt-1 shrink-0 text-[#C5A265]" /> Av.
-              Brigadeiro Faria Lima, 3477, 14º andar
-              <br />
-              Itaim Bibi, São Paulo - SP
-            </span>
+            <a
+              href={site.mapsUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex gap-2 hover:text-[#C5A265]"
+            >
+              <MapPin size={16} className="mt-1 shrink-0 text-[#C5A265]" />
+              <span>
+                {site.address}
+                <br />
+                {site.city}
+                <br />
+                Ver no mapa
+              </span>
+            </a>
             <a
               href={`tel:${site.phone.replace(/\D/g, "")}`}
               className="flex gap-2 hover:text-[#C5A265]"
