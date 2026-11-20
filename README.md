@@ -18,20 +18,24 @@ if (-not (Test-Path .env.local)) {
 ```
 
 O painel requer uma `AUTH_SECRET` aleatória com pelo menos 32 bytes, uma senha
-administrativa única com pelo menos 16 caracteres e uma `DATABASE_URL` do Neon.
+administrativa única com pelo menos 16 caracteres e uma conexão do Neon. O app
+prioriza `ROCHA_DATABASE_URL`; se ela não estiver definida, usa `DATABASE_URL`.
 Não reutilize credenciais que tenham sido exibidas em capturas de tela ou
 compartilhadas anteriormente.
 
 ## Preparação do Neon
 
 Crie o banco e execute [database/schema.sql](./database/schema.sql) no SQL
-Editor do Neon antes de acessar o painel. Em `DATABASE_URL`, use a string de
-conexão **pooled** do Neon e configure `sslmode=verify-full` para validar o
-certificado TLS e o nome do servidor.
+Editor do Neon antes de acessar o painel. Em `ROCHA_DATABASE_URL`, use a string
+de conexão **pooled** do Neon e configure `sslmode=verify-full` para validar o
+certificado TLS e o nome do servidor. Esse nome separado permite usar uma
+conexão da role restrita mesmo quando a integração Vercel–Neon gerencia
+automaticamente `DATABASE_URL`.
 
 Crie também um role separado chamado `rocha_app` pelo console do Neon. Depois
 execute [database/grants.sql](./database/grants.sql) no SQL Editor usando o
-owner do projeto e use a connection string pooled desse role para `DATABASE_URL`.
+owner do projeto e use a connection string pooled desse role para
+`ROCHA_DATABASE_URL`.
 O usuário da aplicação precisa apenas de `SELECT` e `INSERT`; não use a senha
 do owner do banco na aplicação.
 
@@ -51,7 +55,7 @@ do owner do banco na aplicação.
    prontos.
 6. Para testar o painel, crie o Neon, aplique `database/schema.sql`, crie o
    role restrito `rocha_app`, aplique `database/grants.sql` e configure
-   `DATABASE_URL`, `AUTH_SECRET`, `ADMIN_EMAIL` e `ADMIN_PASSWORD` em **Settings
+   `ROCHA_DATABASE_URL`, `AUTH_SECRET`, `ADMIN_EMAIL` e `ADMIN_PASSWORD` em **Settings
    → Environment Variables**. Marque segredos como **Sensitive** e selecione
    **Preview** para teste. Reserve **Production** para o banco e as credenciais
    que você realmente quer usar nessa URL.

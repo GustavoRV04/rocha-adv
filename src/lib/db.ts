@@ -1,6 +1,7 @@
 import { Pool, type QueryResultRow } from "pg";
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString =
+  process.env.ROCHA_DATABASE_URL ?? process.env.DATABASE_URL;
 
 export const db = connectionString
   ? new Pool({
@@ -18,7 +19,7 @@ export async function query<T extends QueryResultRow>(
 ) {
   if (!db) {
     throw new Error(
-      "DATABASE_URL não está configurada. Defina a conexão do Neon para continuar.",
+      "Defina ROCHA_DATABASE_URL ou DATABASE_URL para conectar ao Neon.",
     );
   }
 
