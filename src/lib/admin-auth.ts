@@ -1,15 +1,29 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 export const adminSessionCookie = "__rocha_admin_session";
 
 const defaultSessionTTL = 60 * 60 * 12;
 
+export function isSameOriginRequest(request: Request) {
+  const origin = request.headers.get("origin");
+
+  if (!origin) {
+    return false;
+  }
+
+  try {
+    return new URL(origin).origin === new URL(request.url).origin;
+  } catch {
+    return false;
+  }
+}
+
 function getAdminSecret() {
   const secret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
 
-  if (!secret) {
+  if (!secret || Buffer.byteLength(secret) < 32) {
     throw new Error(
-      "AUTH_SECRET não está configurada. Defina uma chave secreta válida para proteger o cookie do painel.",
+      "AUTH_SECRET deve conter pelo menos 32 bytes para proteger o cookie do painel.",
     );
   }
 
@@ -18,23 +32,30 @@ function getAdminSecret() {
 
 function getAdminCredentials() {
   const email = process.env.ADMIN_EMAIL?.trim();
-  const password = process.env.ADMIN_PASSWORD?.trim();
+  const password = process.env.ADMIN_PASSWORD;
 
-  if (!email || !password) {
+  if (!email || !password || password.length < 16) {
     throw new Error(
-      "ADMIN_EMAIL e ADMIN_PASSWORD devem estar definidas para autenticar o painel administrativo.",
+      "Defina ADMIN_EMAIL e uma ADMIN_PASSWORD com pelo menos 16 caracteres.",
     );
   }
 
   return { email, password };
 }
 
+function valuesMatch(left: string, right: string) {
+  const leftHash = createHash("sha256").update(left).digest();
+  const rightHash = createHash("sha256").update(right).digest();
+
+  return timingSafeEqual(leftHash, rightHash);
+}
+
 export function validateAdminCredentials(inputEmail: string, inputPassword: string) {
   const { email, password } = getAdminCredentials();
 
   return (
-    inputEmail.trim().toLowerCase() === email.trim().toLowerCase() &&
-    inputPassword === password
+    valuesMatch(inputEmail.trim().toLowerCase(), email.toLowerCase()) &&
+    valuesMatch(inputPassword, password)
   );
 }
 

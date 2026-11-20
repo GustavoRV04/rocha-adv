@@ -1,7 +1,25 @@
 import { NextResponse } from "next/server";
-import { setAdminSession, validateAdminCredentials } from "@/lib/admin-auth";
+import {
+  isSameOriginRequest,
+  setAdminSession,
+  validateAdminCredentials,
+} from "@/lib/admin-auth";
 
 export async function POST(request: Request) {
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json(
+      { error: "Origem da solicitação inválida." },
+      { status: 403 },
+    );
+  }
+
+  if (Number(request.headers.get("content-length") ?? 0) > 8_192) {
+    return NextResponse.json(
+      { error: "Solicitação muito grande." },
+      { status: 413 },
+    );
+  }
+
   try {
     const body = (await request.json()) as {
       email?: string;
@@ -21,7 +39,9 @@ export async function POST(request: Request) {
     await setAdminSession(email);
 
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (error) {
+    console.error("Falha ao autenticar o administrador:", error);
+
     return NextResponse.json(
       { error: "Não foi possível realizar o login." },
       { status: 500 },

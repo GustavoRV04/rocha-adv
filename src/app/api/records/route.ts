@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { readAdminSession } from "@/lib/admin-auth";
-import { ensureDatabaseSchema, query } from "@/lib/db";
+import { isSameOriginRequest, readAdminSession } from "@/lib/admin-auth";
+import { query } from "@/lib/db";
 
 const schemaByType = {
   cliente: {
@@ -18,6 +18,13 @@ const schemaByType = {
 } as const;
 
 export async function POST(request: Request) {
+  if (!isSameOriginRequest(request)) {
+    return NextResponse.json(
+      { error: "Origem da solicitação inválida." },
+      { status: 403 },
+    );
+  }
+
   try {
     const sessionEmail = await readAdminSession();
 
@@ -36,7 +43,7 @@ export async function POST(request: Request) {
     const type = body.type;
     const values = body.values ?? {};
 
-    if (!type || !(type in schemaByType)) {
+    if (!type || !Object.hasOwn(schemaByType, type)) {
       return NextResponse.json(
         { error: "Tipo de registro inválido." },
         { status: 400 },
@@ -94,8 +101,6 @@ export async function POST(request: Request) {
       );
     }
 
-    await ensureDatabaseSchema();
-
     const fields = Object.keys(cleaned);
     const placeholders = fields.map((_, index) => `$${index + 1}`).join(", ");
     const valuesList = Object.values(cleaned);
@@ -107,11 +112,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Não foi possível processar a solicitação.";
+    console.error("Falha ao criar registro administrativo:", error);
 
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Não foi possível salvar o registro." },
+      { status: 500 },
+    );
   }
 }
