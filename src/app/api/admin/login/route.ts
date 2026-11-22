@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
     if (!validateAdminCredentials(email, password)) {
       return NextResponse.json(
-        { error: "Credenciais inválidas." },
+        { error: "E-mail ou senha incorretos." },
         { status: 401 },
       );
     }
@@ -43,7 +43,10 @@ export async function POST(request: Request) {
     console.error("Falha ao autenticar o administrador:", error);
 
     return NextResponse.json(
-      { error: "Não foi possível realizar o login." },
+      {
+        error:
+          "O acesso administrativo não está configurado neste ambiente. Confira ADMIN_EMAIL, ADMIN_PASSWORD e AUTH_SECRET nas variáveis do Preview.",
+      },
       { status: 500 },
     );
   }

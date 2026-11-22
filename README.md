@@ -39,6 +39,13 @@ owner do projeto e use a connection string pooled desse role para
 O usuário da aplicação precisa apenas de `SELECT` e `INSERT`; não use a senha
 do owner do banco na aplicação.
 
+O formulário público de contato grava solicitações na tabela
+`solicitacoes_consulta`. Ao atualizar um banco já existente, execute novamente
+`database/schema.sql` e depois `database/grants.sql` no SQL Editor do Neon,
+conectado como owner. O role `rocha_app` precisa do privilégio `INSERT` nessa
+tabela; as solicitações não são compromissos confirmados e não aparecem na
+agenda administrativa.
+
 ## Deploy ligado ao GitHub
 
 1. Envie as alterações ao GitHub (veja os comandos abaixo) e entre na Vercel.
@@ -55,10 +62,12 @@ do owner do banco na aplicação.
    prontos.
 6. Para testar o painel, crie o Neon, aplique `database/schema.sql`, crie o
    role restrito `rocha_app`, aplique `database/grants.sql` e configure
-   `ROCHA_DATABASE_URL`, `AUTH_SECRET`, `ADMIN_EMAIL` e `ADMIN_PASSWORD` em **Settings
-   → Environment Variables**. Marque segredos como **Sensitive** e selecione
-   **Preview** para teste. Reserve **Production** para o banco e as credenciais
-   que você realmente quer usar nessa URL.
+   `ROCHA_DATABASE_URL`, `AUTH_SECRET`, `ADMIN_EMAIL` e `ADMIN_PASSWORD` em
+   **Settings → Environment Variables**. Selecione **Preview** e a branch
+   `vercel-preview` para teste. Use um e-mail de sua escolha, uma senha inédita
+   com pelo menos 16 caracteres e um `AUTH_SECRET` aleatório com pelo menos 32
+   bytes. Marque segredos como **Sensitive**. Reserve **Production** para o
+   banco e as credenciais que você realmente quer usar nessa URL.
 7. Configure uma regra em **Firewall → Configure → New Rule** para o caminho
    `/api/admin/login` e método POST, com ação **Rate Limit**. Comece, por
    exemplo, com 5 tentativas por minuto por IP e ajuste após testar. A Vercel

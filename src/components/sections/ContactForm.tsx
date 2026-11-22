@@ -1,10 +1,55 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowRight, CheckCircle2, LockKeyhole } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  LoaderCircle,
+  LockKeyhole,
+} from "lucide-react";
 
 export function ContactForm() {
   const [sent, setSent] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    const formData = new FormData(event.currentTarget);
+
+    try {
+      const response = await fetch("/api/consultations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.get("name"),
+          email: formData.get("email"),
+          phone: formData.get("phone"),
+          area: formData.get("area"),
+          summary: formData.get("summary"),
+        }),
+      });
+
+      if (!response.ok) {
+        const result = (await response.json()) as { error?: string };
+        setErrorMessage(
+          result.error ?? "Não foi possível enviar. Tente novamente.",
+        );
+        return;
+      }
+
+      setSent(true);
+    } catch {
+      setErrorMessage(
+        "Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   if (sent) {
     return (
@@ -30,10 +75,7 @@ export function ContactForm() {
 
   return (
     <form
-      onSubmit={(event) => {
-        event.preventDefault();
-        setSent(true);
-      }}
+      onSubmit={handleSubmit}
       className="bg-white p-6 shadow-xl md:p-10"
     >
       <div className="flex items-center justify-between gap-4">
@@ -99,10 +141,23 @@ export function ContactForm() {
         <textarea
           required
           name="summary"
+          maxLength={2000}
           rows={5}
           className="mt-2 w-full resize-y border border-[#0E223D]/15 bg-[#FBFBF9] px-4 py-3 text-sm font-normal normal-case tracking-normal outline-none focus:border-[#C5A265]"
         />
       </label>
+      <p className="mt-2 text-xs leading-5 text-[#526071]">
+        Para sua segurança, não inclua documentos, senhas ou informações
+        sensíveis neste primeiro contato.
+      </p>
+      {errorMessage && (
+        <p
+          role="alert"
+          className="mt-5 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
+          {errorMessage}
+        </p>
+      )}
       <div className="mt-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <span className="flex items-center gap-2 text-xs text-[#526071]">
           <LockKeyhole size={14} className="text-[#C5A265]" /> Seus dados são
@@ -110,9 +165,18 @@ export function ContactForm() {
         </span>
         <button
           type="submit"
-          className="inline-flex items-center gap-2 bg-[#C5A265] px-5 py-3 text-sm font-bold text-[#07172B] hover:bg-[#E2C58E]"
+          disabled={isSubmitting}
+          className="inline-flex items-center gap-2 bg-[#C5A265] px-5 py-3 text-sm font-bold text-[#07172B] hover:bg-[#E2C58E] disabled:cursor-wait disabled:opacity-70"
         >
-          Solicitar análise <ArrowRight size={16} />
+          {isSubmitting ? (
+            <>
+              Enviando solicitação <LoaderCircle size={16} className="animate-spin" />
+            </>
+          ) : (
+            <>
+              Solicitar análise <ArrowRight size={16} />
+            </>
+          )}
         </button>
       </div>
     </form>

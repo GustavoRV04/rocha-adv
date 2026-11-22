@@ -20,25 +20,33 @@ export function LoginForm() {
     setErrorMessage("");
     setSuccessMessage("");
 
-    const response = await fetch("/api/admin/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!response.ok) {
+      if (!response.ok) {
+        const result = (await response.json()) as { error?: string };
+        setErrorMessage(
+          result.error ?? "Não foi possível validar suas credenciais.",
+        );
+        return;
+      }
+
+      setSuccessMessage("Credenciais verificadas. Acesso autorizado.");
+      router.push("/admin");
+      router.refresh();
+    } catch {
       setErrorMessage(
-        "Não foi possível validar suas credenciais. Confira os dados e tente novamente.",
+        "Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.",
       );
+    } finally {
       setIsLoading(false);
-      return;
     }
-
-    setSuccessMessage("Credenciais verificadas. Acesso autorizado.");
-    router.push("/admin");
-    router.refresh();
   }
 
   return (
